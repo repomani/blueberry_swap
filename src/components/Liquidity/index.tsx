@@ -82,7 +82,6 @@ export class AddLiquidity extends Component<IProps, IState> {
     let outputAmount: any;
     let outputAmountInWei: any;
 
-    console.log(e.target.value);
     if (e.target.value !== '') {
       outputAmount = e.target.value;
       outputAmountInWei = this.context.toWei(outputAmount).toString();
@@ -128,7 +127,6 @@ export class AddLiquidity extends Component<IProps, IState> {
     let outputAmount: any;
     let outputAmountInWei: any;
 
-    console.log(e.target.value);
     if (e.target.value !== '') {
       inputAmount = e.target.value;
       inputAmountInWei = this.context.toWei(inputAmount).toString();
@@ -182,6 +180,7 @@ export class AddLiquidity extends Component<IProps, IState> {
       <div className="card mb-4">
         <div className="card-body">
           <form
+            autoComplete="off"
             className="mb-3"
             onSubmit={async (event: any) => {
               event.preventDefault();
@@ -201,8 +200,10 @@ export class AddLiquidity extends Component<IProps, IState> {
               <input
                 id="tokenA"
                 type="number"
+                step="0.000000000000000001"
+                autoComplete="off"
                 placeholder="0.0"
-                value={this.state.inputAmount}
+                defaultValue={this.state.inputAmount}
                 onChange={(event: any) => {
                   this.handleOnChangeTokenBAmount(event);
                 }}
@@ -213,12 +214,12 @@ export class AddLiquidity extends Component<IProps, IState> {
                 <div className="input-group-text">
                   <img
                     src={
-                      'https://image.flaticon.com/icons/png/512/1777/1777889.png'
+                      'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'
                     }
                     height="32"
                     alt=""
                   />
-                  &nbsp;&nbsp;&nbsp; ETH
+                  &nbsp;&nbsp;&nbsp; BNB
                 </div>
               </div>
             </div>
@@ -235,6 +236,8 @@ export class AddLiquidity extends Component<IProps, IState> {
               <input
                 id="tokenB"
                 type="number"
+                step="0.000000000000000001"
+                autoComplete="off"
                 placeholder="0.0"
                 value={this.state.outputAmount}
                 className="form-control form-control-lg"
@@ -290,11 +293,11 @@ export class AddLiquidity extends Component<IProps, IState> {
             <Symbol>
               <Image
                 src={
-                  'https://image.flaticon.com/icons/png/512/1777/1777889.png'
+                  'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'
                 }
               ></Image>
             </Symbol>
-            ETH
+            BNB
             <TokenValue>{this.state.token_B}</TokenValue>
           </LiquidityItems>
         </Container>

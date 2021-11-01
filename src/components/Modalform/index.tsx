@@ -157,7 +157,6 @@ export const Modal = ({ isOpen, toggleTokenListModal, getTokenData }) => {
                     <Image src={tokens[index].logoURI} key={index + 1}></Image>
                     <NameSymbolContainer key={index + 2}>
                       <RowSymbol>{tokens[index].symbol}</RowSymbol>
-                      <RowName>{tokens[index].name}</RowName>
                     </NameSymbolContainer>
                   </ContainerRow>
                 )}

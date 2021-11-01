@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 
 contract CustomERC20  {
-    string public constant name = 'Palim V2';
-    string public constant symbol = 'Palim-V2';
+    string public constant name = 'BlueberrySwap V2';
+    string public constant symbol = 'BlueberrySwap-V2';
     uint8 public constant decimals = 18;
     uint  public totalSupply;
     mapping(address => uint) public balanceOf;

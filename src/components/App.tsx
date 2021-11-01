@@ -8,7 +8,7 @@ import Factory from '../abi/src/contracts/Factory.sol/Factory.json';
 import Router from '../abi/src/contracts/Router.sol/Router.json';
 import WETH from '../abi/src/contracts/WETH.sol/WETH.json';
 import Token from '../abi/src/contracts/Token1.sol/Token1.json';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import Context from './Context';
 import { Modal } from '../components/Modalform';
 import { IApp, ITokenData } from '../components/IStates/IApp';
@@ -246,16 +246,15 @@ class App extends Component<IProps, IApp> {
         await tx.wait(1);
 
         //slippage 10%
-        // const minEth = BigNumber.from(ethAmount).mul(80).div(100);
-        // const minToken = BigNumber.from(tokenAmount).mul(80).div(100);
+        const minEth = BigNumber.from(ethAmount).mul(70).div(100);
+        const minToken = BigNumber.from(tokenAmount).mul(70).div(100);
 
         // console.log(minEth.toString(), minToken.toString());
-
         const tx2 = await this.state.router.addLiquidityETH(
           this.state.tokenData.address,
           tokenAmount,
-          tokenAmount,
-          ethAmount,
+          minToken,
+          minEth,
           this.state.account,
           deadline,
           {

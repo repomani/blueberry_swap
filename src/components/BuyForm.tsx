@@ -122,9 +122,7 @@ class BuyForm extends Component<IProps, IState> {
           <div className="input-group-append">
             <div className="input-group-text">
               <img
-                src={
-                  'https://image.flaticon.com/icons/png/512/1777/1777889.png'
-                }
+                src={'0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0'}
                 height="32"
                 alt=""
               />
@@ -179,7 +177,7 @@ class BuyForm extends Component<IProps, IState> {
               <br />
               <span className="float-right text-muted">
                 <i style={{ margin: '3px' }}>1</i>
-                Melone =<i style={{ margin: '3px' }}>{this.state.calc}</i>
+                Blueberry =<i style={{ margin: '3px' }}>{this.state.calc}</i>
                 ETH
               </span>
             </>

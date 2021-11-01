@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Identicon from 'identicon.js';
 import styled from 'styled-components';
+import logo from '../images/logo_blueberry.png';
 
 const WrongNetwork = styled.div`
   border: 0.5px solid white;
@@ -20,7 +21,8 @@ class Navbar extends Component<IProps, IState> {
       <nav className="navbar navbar-dark bg-dark">
         <div className="container-fluid">
           <a className="navbar-brand" href="#">
-            meloneswap.finance
+            <img src={logo} height="60" />
+            blueberryswap.finance
           </a>
           <ul className="navbar-nav px-3 d-flex flex-row">
             {this.props.account ? (

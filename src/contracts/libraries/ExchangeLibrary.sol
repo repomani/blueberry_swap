@@ -24,7 +24,7 @@ using SafeMath for uint256;
                 hex'ff',
                 factory,
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'bfb0c7e2d489cbe96d84f55d791272069f37f787c4e38e4d14905e8c446a9689' // init code hash
+                hex'66130edb0660eacd45ec002ae0448cb990b8703fd3368eb14ff3ee557eb5dc5d' // init code hash
             )))));
      
     }

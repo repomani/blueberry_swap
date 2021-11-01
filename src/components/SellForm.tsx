@@ -102,7 +102,7 @@ class SellForm extends Component<IProps, IState> {
             <div className="input-group-text">
               <img
                 src={
-                  'https://image.flaticon.com/icons/png/512/2934/2934894.png'
+                  'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'
                 }
                 height="32"
                 alt=""
@@ -139,7 +139,7 @@ class SellForm extends Component<IProps, IState> {
             <div className="input-group-text">
               <img
                 src={
-                  'https://image.flaticon.com/icons/png/512/1777/1777889.png'
+                  'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'
                 }
                 height="32"
                 alt=""

@@ -91,9 +91,6 @@ contract Exchange is CustomERC20 {
                 if (_kLast != 0) {
                     uint rootK = Math.sqrt(uint(_reserve0) * (_reserve1));
                     uint rootKLast = Math.sqrt(_kLast);
-                    console.log('....._mintFee......');
-                    console.log(rootK, rootKLast, rootK>rootKLast, rootK - rootKLast);
-                     console.log('....._mintFee......');
                     if (rootK > rootKLast) {
                         uint numerator = totalSupply.mul(rootK.sub(rootKLast));
                         uint denominator = rootK.mul(5).add(rootKLast);
@@ -105,7 +102,7 @@ contract Exchange is CustomERC20 {
                 kLast = 0;
             }
         }
-        
+    
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
