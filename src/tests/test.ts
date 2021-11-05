@@ -151,7 +151,7 @@ describe('addLiqudity', () => {
     );
   });
 
-  xit('should remove liquidity', async () => {
+  it('should remove liquidity', async () => {
     const expectedLiquidity: any = toWei(2);
     const liquidity = expectedLiquidity.sub(BigNumber.from(MINIMUM_LIQUIDITY));
     const WETHPairAddress = await factory.getPair(token1.address, weth.address);
@@ -167,7 +167,7 @@ describe('addLiqudity', () => {
     console.log(`LP token balance before: ${wethBalanceLpLiquidityBefore}`);
 
     await WETHPair.connect(owner).approve(router.address, constants.MaxUint256);
-    await router.removeLiquidityETH(
+    await router.removeLiquidityETHSupportingFeeOnTransferTokens(
       token1.address,
       liquidity,
       0,
@@ -178,11 +178,13 @@ describe('addLiqudity', () => {
     );
     const wethBalanceLpLiquidityAfter = await WETHPair.balanceOf(owner.address);
     console.log(`LP token balance after: ${wethBalanceLpLiquidityAfter}`);
-    expect(await WETHPair.balanceOf(owner.address)).to.eq(0);
+    expect(await WETHPair.balanceOf(owner.address)).to.eq(
+      '2000000000000000000'
+    );
   });
 });
 
-describe.skip('getAmounts', () => {
+describe('getAmounts', () => {
   it('getAmountOut', async () => {
     expect(
       await router.getAmountOut(
@@ -337,24 +339,25 @@ describe('swap', () => {
       }
     );
   });
+
+  it('should swap token to token', async () => {
+    // Token to Token
+    const DTTAmount = toWei(9).mul(100).div(99);
+    const DTT2Amount = toWei(8);
+    const amountIn = toWei(3);
+    await token1.approve(router.address, constants.MaxUint256);
+
+    beforeEach(async () => {
+      await addLiquidity(DTTAmount, DTT2Amount);
+    });
+
+    await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+      amountIn,
+      0,
+      [token1.address, token2.address],
+      owner.address,
+      constants.MaxUint256,
+      overrides
+    );
+  });
 });
-// it('should swap token to token', async () => {
-//   // Token to Token
-//   const DTTAmount = toWei(9).mul(100).div(99);
-//   const DTT2Amount = toWei(8);
-//   const amountIn = toWei(3);
-//   await token1.approve(router.address, constants.MaxUint256);
-
-//   beforeEach(async () => {
-//     await addLiquidity(DTTAmount, DTT2Amount);
-//   });
-
-//   await router.swapExactTokensForTokens(
-//     amountIn,
-//     0,
-//     [token1.address, token2.address],
-//     owner.address,
-//     constants.MaxUint256,
-//     overrides
-//   );
-// });

@@ -9,7 +9,7 @@ import './interfaces/ITransferHelper.sol';
 import './interfaces/IExchangeLibrary.sol';
 import './interfaces/IWeth.sol';
 
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 
 contract Router is IRouter{
    using ExchangeLibrary for IExchangeLibrary;
@@ -17,8 +17,6 @@ contract Router is IRouter{
 
    address public immutable override factory;
    address public immutable override WETH;
-   uint256 public amountAA;
-   uint256 public amountBB;
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'Router ensure: EXPIRED');
@@ -128,8 +126,9 @@ function addLiquidityETH(
         require(amountA >= amountAMin, 'removeLiquidity: INSUFFICIENT_A_AMOUNT');
         require(amountB >= amountBMin, 'removeLiquidity: INSUFFICIENT_B_AMOUNT');
     }
+
     //feesOnTransferSupported
-    function removeLiquidityETH(
+    function removeLiquidityETHSupportingFeeOnTransferTokens(
         address token,
         uint liquidity,
         uint amountTokenMin,
@@ -151,44 +150,26 @@ function addLiquidityETH(
         TransferHelper.safeTransferETH(to, amountETH);
     }
 
-     //feesOnTransferSupported
-    function removeLiquidityETHWithPermit(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s
-    ) external virtual override returns (uint amountETH) {
-        address pair = ExchangeLibrary.pairFor(factory, token, WETH);
-        uint value = approveMax ? type(uint256).max : liquidity;
-        IExchange(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
-        amountETH = removeLiquidityETH(
-            token, liquidity, amountTokenMin, amountETHMin, to, deadline
-        );
-    }
-
     function _swapSupportingFeeOnTransferTokens(address[] memory path, address _to) internal virtual {
-    for (uint i; i < path.length - 1; i++) {
-        (address input, address output) = (path[i], path[i + 1]);
-        (address token0,) = ExchangeLibrary.sortTokens(input, output);
-        IExchange pair = IExchange(ExchangeLibrary.pairFor(factory, input, output));
-        uint amountInput;
-        uint amountOutput;
-        { // scope to avoid stack too deep errors
-        (uint reserve0, uint reserve1,) = pair.getReserves();
-        (uint reserveInput, uint reserveOutput) = input == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
-        amountInput = IERC20(input).balanceOf(address(pair)) - (reserveInput);
-        amountOutput = ExchangeLibrary.getAmountOut(amountInput, reserveInput, reserveOutput);
+        for (uint i; i < path.length - 1; i++) {
+            (address input, address output) = (path[i], path[i + 1]);
+            (address token0,) = ExchangeLibrary.sortTokens(input, output);
+            IExchange pair = IExchange(ExchangeLibrary.pairFor(factory, input, output));
+            uint amountInput;
+            uint amountOutput;
+            { // scope to avoid stack too deep errors
+            (uint reserve0, uint reserve1,) = pair.getReserves();
+            (uint reserveInput, uint reserveOutput) = input == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
+            amountInput = IERC20(input).balanceOf(address(pair)) - (reserveInput);
+            amountOutput = ExchangeLibrary.getAmountOut(amountInput, reserveInput, reserveOutput);
+            }
+            (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOutput) : (amountOutput, uint(0));
+            address to = i < path.length - 2 ? ExchangeLibrary.pairFor(factory, output, path[i + 2]) : _to;
+            pair.swap(amount0Out, amount1Out, to, new bytes(0));
         }
-        (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOutput) : (amountOutput, uint(0));
-        address to = i < path.length - 2 ? ExchangeLibrary.pairFor(factory, output, path[i + 2]) : _to;
-        pair.swap(amount0Out, amount1Out, to, new bytes(0));
-    }
 }
      //feesOnTransferSupported
-    function swapExactETHForTokens(
+    function swapExactETHForTokensSupportingFeeOnTransferTokens(
         uint amountOutMin,
         address[] calldata path,
         address to,
@@ -212,7 +193,7 @@ function addLiquidityETH(
         );
     }
  //feesOnTransferSupported
-function swapExactTokensForTokens(
+function swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint amountIn,
         uint amountOutMin,
         address[] calldata path,
@@ -226,7 +207,7 @@ function swapExactTokensForTokens(
         _swapSupportingFeeOnTransferTokens(path, to);
         require(
             IERC20(path[path.length - 1]).balanceOf(to) - (balanceBefore) >= amountOutMin,
-            'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT'
+            'BlueberryV2Router: INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
 
