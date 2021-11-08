@@ -1,12 +1,6 @@
-import chai, { expect } from 'chai';
+import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import {
-  BigNumber,
-  constants,
-  Contract,
-  ContractTransaction,
-  Wallet,
-} from 'ethers';
+import { BigNumber, constants } from 'ethers';
 
 const toWei = (value: any) => ethers.utils.parseEther(value.toString());
 import DEX from '../abi/src/contracts/Exchange.sol/Exchange.json';

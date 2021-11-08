@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import './Exchange.sol';
-import 'hardhat/console.sol';
+// import 'hardhat/console.sol';
 
 contract Factory is IFactory{
     address public override feeTo;

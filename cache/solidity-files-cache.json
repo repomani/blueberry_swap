@@ -566,8 +566,8 @@
       ]
     },
     "/Users/ag/Documents/uniWithUI/src/contracts/Factory.sol": {
-      "lastModificationDate": 1630713445061,
-      "contentHash": "01e54b4b9ac6c3a1a3eca0592a91e1cd",
+      "lastModificationDate": 1636394426814,
+      "contentHash": "142f18b3be7fff482e7729a4972bb08d",
       "sourceName": "src/contracts/Factory.sol",
       "solcConfig": {
         "version": "0.8.0",
@@ -592,8 +592,7 @@
         }
       },
       "imports": [
-        "./Exchange.sol",
-        "hardhat/console.sol"
+        "./Exchange.sol"
       ],
       "versionPragmas": [
         "^0.8.0"

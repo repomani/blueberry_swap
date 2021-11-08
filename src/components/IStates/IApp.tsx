@@ -26,8 +26,6 @@ export interface IApp {
   getTokenAAmount(tokenAmount: string): any;
   getTokenBAmount(tokenAmount: string): any;
   getTokenBOutAmount(ethAmount: string): any;
-  getEthBalanceLiquidity(amount: string, exchange: any): any;
-  getTokenBalanceLiquidity(exchange: any): any;
   getExchangeAddress(token1: any, token2: any): any;
   getExchange(exchange: any): any;
   fromWei(value: any): string;

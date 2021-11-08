@@ -1,9 +1,23 @@
-import { Component } from 'react';
+import { Component, useEffect } from 'react';
 import styled from 'styled-components';
 import Context from '../Context';
+import { ethers } from 'ethers';
 import { FaAngleDown } from 'react-icons/fa';
+import Factory from '../../abi/src/contracts/Factory.sol/Factory.json';
+import DEX from '../../abi/src/contracts/Exchange.sol/Exchange.json';
+
+export interface ProcessEnv {
+  [key: string]: string | undefined;
+}
 
 require('dotenv').config();
+
+const {
+  REACT_APP_ROUTER_ADDRESS,
+  REACT_APP_FACTORY_ADDRESS,
+  REACT_APP_WETH_ADDRESS,
+  REACT_APP_ZERO_ADDRESS,
+}: ProcessEnv = process.env;
 
 const Container = styled.div`
   border: 0.5px solid skyblue;
@@ -33,12 +47,13 @@ interface IProps {
 }
 
 interface IState {
+  calc: any;
   inputAmount: any;
   inputAmountInWei: any;
   outputAmount: any;
   outputAmountInWei: any;
-  token_A: string;
-  token_B: string;
+  token_A_LP_Balance: string;
+  token_B_LP_Balance: string;
 }
 
 const Image = styled.img`
@@ -52,18 +67,26 @@ export class AddLiquidity extends Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
     this.state = {
+      calc: 0,
       inputAmount: '',
       inputAmountInWei: '',
       outputAmount: '',
       outputAmountInWei: '',
-      token_A: '',
-      token_B: '',
+      token_A_LP_Balance: '',
+      token_B_LP_Balance: '',
     };
+  }
+
+  componentDidUpdate() {
+    if (Object.keys(this.context.tokenData).length > 0) {
+      console.log(this.context.tokenData.address);
+      this.getLiquidityOwner(this.context.tokenData);
+    }
   }
 
   handleSubmit = async (event: any) => {
     console.log('submit..');
-    console.log(this.state.inputAmountInWei, this.state.outputAmountInWei);
+    // console.log(this.state.inputAmountInWei, this.state.outputAmountInWei);
     if (event.target.value !== '') {
       const inputAmountInWei = this.state.inputAmountInWei;
       const outputAmountInWei = this.state.outputAmountInWei;
@@ -100,6 +123,7 @@ export class AddLiquidity extends Component<IProps, IState> {
           inputAmountInWei = inputAmountInWei[1].toString();
 
           this.setState({
+            calc: inputAmount / outputAmount,
             inputAmount,
             inputAmountInWei,
             outputAmount,
@@ -144,6 +168,7 @@ export class AddLiquidity extends Component<IProps, IState> {
           outputAmountInWei = outputAmountInWei[1].toString();
 
           this.setState({
+            calc: inputAmount / outputAmount,
             inputAmount,
             inputAmountInWei,
             outputAmount,
@@ -173,6 +198,47 @@ export class AddLiquidity extends Component<IProps, IState> {
       inputAmount: null,
       outputAmount: null,
     });
+  };
+
+  getLiquidityOwner = async (token1: any) => {
+    const factory = new ethers.Contract(
+      REACT_APP_FACTORY_ADDRESS,
+      Factory.abi,
+      this.context.signer
+    );
+    const pairAddress = await factory.getPair(
+      token1.address,
+      REACT_APP_WETH_ADDRESS
+    );
+
+    const Pair = new ethers.Contract(
+      pairAddress,
+      DEX.abi,
+      this.context.provider
+    );
+    if (Pair.address !== REACT_APP_ZERO_ADDRESS) {
+      const pairBalance = await Pair.balanceOf(this.context.account).toString();
+      const token_A_LP_Balance = await this.context.token1.balanceOf(
+        Pair.address
+      );
+
+      //WETH
+      const token_B_LP_Balance = await this.context.weth.balanceOf(
+        Pair.address
+      );
+
+      const lpPairBalance = pairBalance.toString();
+      const tokenA = token_A_LP_Balance.toString();
+      const tokenB = token_B_LP_Balance.toString();
+
+      console.log(`LP ${lpPairBalance}`);
+      console.log(`LP Token Balance ${tokenA}`);
+      console.log(`LP WETH Balance ${tokenB}`);
+      this.setState({
+        token_A_LP_Balance: tokenA,
+        token_B_LP_Balance: tokenB,
+      });
+    }
   };
 
   main = () => (
@@ -262,17 +328,18 @@ export class AddLiquidity extends Component<IProps, IState> {
               </div>
             </div>
             <div className="mb-5">
-              {/* {this.state.inputActive ? (
-                  <>
-                    <span className="float-left text-muted">Exchange Rate</span>
-                    <br />
-                    <span className="float-right text-muted">
-                      <i style={{ margin: '3px' }}>1</i>
-                      Melone =<i style={{ margin: '3px' }}>{this.state.calc}</i>
-                      ETH
-                    </span>
-                  </>
-                ) : null} */}
+              {this.state.calc > 0 ? (
+                <>
+                  <span className="float-left text-muted">Exchange Rate</span>
+                  <br />
+                  <span className="float-right text-muted">
+                    <i style={{ margin: '3px' }}>1</i>
+                    {this.context.tokenData.symbol} =
+                    <i style={{ margin: '3px' }}>{this.state.calc}</i>
+                    BNB
+                  </span>
+                </>
+              ) : null}
             </div>
             <button type="submit" className="btn btn-primary btn-block btn-lg">
               AddLiquidity
@@ -281,24 +348,22 @@ export class AddLiquidity extends Component<IProps, IState> {
         </div>
       </div>
 
-      {this.state.token_A ? (
+      {this.state.token_A_LP_Balance ? (
         <Container>
-          <Title>Rewards</Title>
+          <Title>Provided Liquidity</Title>
           <LiquidityItems>
             <Image src={this.context.tokenData.logoURI}></Image>
             <Symbol>{this.context.tokenData.symbol}</Symbol>
-            <TokenValue>{this.state.token_A}</TokenValue>
+            <TokenValue>{this.state.token_A_LP_Balance}</TokenValue>
           </LiquidityItems>
           <LiquidityItems>
-            <Symbol>
-              <Image
-                src={
-                  'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'
-                }
-              ></Image>
-            </Symbol>
-            BNB
-            <TokenValue>{this.state.token_B}</TokenValue>
+            <Image
+              src={
+                'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'
+              }
+            ></Image>
+            <Symbol>BNB</Symbol>
+            <TokenValue>{this.state.token_B_LP_Balance}</TokenValue>
           </LiquidityItems>
         </Container>
       ) : null}

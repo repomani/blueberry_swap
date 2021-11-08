@@ -78,8 +78,6 @@ class App extends Component<IProps, IApp> {
       getTokenAAmount: this.getTokenAAmount,
       getTokenBAmount: this.getTokenBAmount,
       getTokenBOutAmount: this.getTokenBOutAmount,
-      getTokenBalanceLiquidity: this.getTokenBalanceLiquidity,
-      getEthBalanceLiquidity: this.getEthBalanceLiquidity,
       getExchangeAddress: this.getExchangeAddress,
       getExchange: this.getExchange,
       fromWei: this.fromWei,
@@ -207,7 +205,7 @@ class App extends Component<IProps, IApp> {
       let tokenBalance: any;
       tokenBalance = await token1.balanceOf(this.state.account);
       tokenBalance = this.fromWei(tokenBalance).toString();
-      this.setState({ tokenBalance });
+      this.setState({ tokenBalance, token1 });
     } catch (err) {
       console.log(err);
     }
@@ -298,16 +296,6 @@ class App extends Component<IProps, IApp> {
   getTokenBOutAmount = async (ethAmount: string) => {
     const tokenAmount = await this.getTokenBAmount(ethAmount);
     return tokenAmount;
-  };
-
-  getEthBalanceLiquidity = async (tokenAmount: string, exchange: any) => {
-    // const ethAmount = await exchange.getEthBalanceLiquidity(tokenAmount);
-    // return ethAmount;
-  };
-
-  getTokenBalanceLiquidity = async (exchange: any) => {
-    // const tokenAmount = await exchange.getTokenBalanceLiquidity();
-    // return tokenAmount;
   };
 
   getExchangeAddress = async (
