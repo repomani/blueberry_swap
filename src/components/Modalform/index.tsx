@@ -72,7 +72,6 @@ const ContainerRow = styled.div`
     background-color: #effcfc;
   }
 `;
-const RowName = styled.div``;
 
 const RowSymbol = styled.div``;
 

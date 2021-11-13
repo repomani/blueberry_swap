@@ -38,4 +38,9 @@ export interface IApp {
   msg: boolean;
   msgTxt: string;
   outputAddress: any;
+  priceImpact: string;
+  lpShareAccountviaInput: string;
+  lpAccountShare: number;
+  tokenAShare: number;
+  tokenBShare: number;
 }

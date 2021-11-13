@@ -59,7 +59,7 @@ class App extends Component<IProps, IApp> {
   child: any;
   constructor(props: IProps) {
     super(props);
-    this.child = React.createRef();
+    this.child = React.createRef() || '';
     this.state = {
       account: '',
       web3: new Web3(Web3.givenProvider),
@@ -90,6 +90,11 @@ class App extends Component<IProps, IApp> {
       msg: false,
       msgTxt: '',
       outputAddress: '',
+      priceImpact: '',
+      lpShareAccountviaInput: '',
+      lpAccountShare: 0,
+      tokenAShare: 0,
+      tokenBShare: 0,
     };
   }
 
@@ -103,19 +108,29 @@ class App extends Component<IProps, IApp> {
     await this.connectToWeb3();
     await this.loadBlockchainData();
   }
+
+  async componentDidUpdate() {
+    if (this.state.tokenData && Object.keys(this.state.tokenData).length > 0) {
+      await this.getLiquidityOwner(this.state.tokenData);
+    }
+  }
   connectToWeb3 = async () => {
-    if (window.ethereum) {
-      window.web3 = new Web3(window.ethereum);
-      await window.ethereum.enable();
-      window.ethereum.on('chainChanged', (chainId: string) =>
-        window.location.reload()
-      );
-    } else if (window.web3) {
-      window.web3 = new Web3(window.web3.currentProvider);
-    } else {
-      window.alert(
-        'Non-Ethereum browser detected. You should consider trying Metamask'
-      );
+    try {
+      if (window.ethereum) {
+        window.web3 = new Web3(window.ethereum);
+        await window.ethereum.enable();
+        window.ethereum.on('chainChanged', (chainId: string) =>
+          window.location.reload()
+        );
+      } else if (window.web3) {
+        window.web3 = new Web3(window.web3.currentProvider);
+      } else {
+        window.alert(
+          'Non-Ethereum browser detected. You should consider trying Metamask'
+        );
+      }
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -169,8 +184,8 @@ class App extends Component<IProps, IApp> {
       this.setState({
         account: accounts[0],
       });
-      // await this.getEthBalance();
-      // await this.getTokenBalance();
+      await this.getEthBalance();
+      await this.getTokenBalance(this.state.tokenData);
     });
   }
 
@@ -247,7 +262,6 @@ class App extends Component<IProps, IApp> {
         const minEth = BigNumber.from(ethAmount).mul(70).div(100);
         const minToken = BigNumber.from(tokenAmount).mul(70).div(100);
 
-        // console.log(minEth.toString(), minToken.toString());
         const tx2 = await this.state.router.addLiquidityETH(
           this.state.tokenData.address,
           tokenAmount,
@@ -272,6 +286,8 @@ class App extends Component<IProps, IApp> {
       this.setState({ loading: false });
     }
   };
+
+  removeLiquidity = async (ethAmount: string, tokenAmount: string) => {};
 
   getExchange = async (exchangeAddress: string) => {
     console.log(exchangeAddress);
@@ -371,7 +387,7 @@ class App extends Component<IProps, IApp> {
 
   getTokenAAmount = async (tokenAmount: string) => {
     try {
-      console.log(`Selected token: ${this.state.tokenData}`);
+      console.log(`Selected token: ${this.state.tokenData.address}`);
       if (Object.keys(this.state.tokenData).length > 0) {
         const exchangeAddress = await this.getExchangeAddress(
           this.state.tokenData.address
@@ -407,7 +423,7 @@ class App extends Component<IProps, IApp> {
 
   getTokenBAmount = async (tokenAmount: string) => {
     try {
-      console.log(`Selected token: ${this.state.tokenData}`);
+      console.log(`Selected token: ${this.state.tokenData.address}`);
       if (Object.keys(this.state.tokenData).length > 0) {
         const exchangeAddress = await this.getExchangeAddress(
           this.state.tokenData.address
@@ -472,13 +488,78 @@ class App extends Component<IProps, IApp> {
     this.setState({ tokenData, isOpen: !this.state.isOpen });
     this.getTokenBalance(tokenData);
     if (this.child.current) {
-      this.getLiquidityByAccount();
       this.child.current.resetForms();
     }
   };
 
-  getLiquidityByAccount = async () => {
-    // await this.child.current.getLiquidityByAccount();
+  getLiquidityOwner = async (token1: ITokenData) => {
+    try {
+      const pairAddress = await this.state.factory.getPair(
+        token1.address,
+        REACT_APP_WETH_ADDRESS
+      );
+
+      const Pair = new ethers.Contract(
+        pairAddress,
+        Exchange.abi,
+        this.state.provider
+      );
+
+      if (Pair.address !== REACT_APP_ZERO_ADDRESS) {
+        //Pair balance account
+        const pairBalanceAccount = await Pair.balanceOf(this.state.account);
+
+        //WETH
+        const token_B_LP_Balance = await this.state.weth.balanceOf(
+          Pair.address
+        );
+
+        //Token
+        const token_A_LP_Balance = await this.state.token1.balanceOf(
+          Pair.address
+        );
+
+        const lpPairBalanceAccount = pairBalanceAccount.toString();
+        //Token balance
+        const tokenA = token_A_LP_Balance.toString();
+        //WETH balance
+        const tokenB = token_B_LP_Balance.toString();
+        const totalSupply = await Pair.totalSupply();
+
+        const priceImp =
+          (this.child.current.state.inputAmountInWei * 100) / tokenB;
+        const priceImpact = priceImp.toString();
+
+        const lpAccountShare = pairBalanceAccount / totalSupply;
+
+        const tokenAShare =
+          Number.parseFloat(this.state.fromWei(tokenA)) * lpAccountShare;
+
+        const tokenBShare =
+          Number.parseFloat(this.state.fromWei(tokenB)) * lpAccountShare;
+
+        const lpShareAccountviaInp =
+          (this.child.current.state.inputAmountInWei * 100) / totalSupply;
+        const lpShareAccountviaInput = lpShareAccountviaInp.toString();
+
+        console.log(`LP Account: ${this.state.fromWei(lpPairBalanceAccount)}`);
+        console.log(`LP Token Balance ${this.state.fromWei(tokenA)}`);
+        console.log(`LP WETH Balance ${this.state.fromWei(tokenB)}`);
+        console.log(`LP Total Supply: ${this.state.fromWei(totalSupply)}`);
+        console.log(`Price impact ${priceImpact}`);
+
+        this.setState({
+          priceImpact,
+          lpShareAccountviaInput,
+          lpAccountShare,
+          tokenAShare,
+          tokenBShare,
+        });
+      }
+    } catch (e) {
+      console.log(`Error getting contract ${e}`);
+      return;
+    }
   };
 
   componentWillUnmount() {
@@ -515,7 +596,7 @@ class App extends Component<IProps, IApp> {
                 sellTokens={this.sellTokens}
               />
             }
-            liquidity={<AddLiquidity buyTokens={this.buyTokens} />}
+            liquidity={<AddLiquidity ref={this.child} />}
           />
         </Context.Provider>
       );

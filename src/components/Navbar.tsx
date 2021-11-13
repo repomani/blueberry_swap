@@ -21,7 +21,7 @@ class Navbar extends Component<IProps, IState> {
       <nav className="navbar navbar-dark bg-dark">
         <div className="container-fluid">
           <a className="navbar-brand" href="#">
-            <img src={logo} height="60" />
+            <img alt="logo" src={logo} height="60" />
             blueberryswap.finance
           </a>
           <ul className="navbar-nav px-3 d-flex flex-row">
