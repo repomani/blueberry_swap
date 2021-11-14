@@ -68,6 +68,7 @@ class App extends Component<IProps, IApp> {
       router: {},
       factory: {},
       exchange: {},
+      Pair: {},
       ethBalance: '0',
       tokenBalance: '0',
       loading: true,
@@ -75,11 +76,13 @@ class App extends Component<IProps, IApp> {
       signer: {},
       exchangeAddress: '',
       addLiquidity: this.addLiquidity,
+      removeLiquidity: this.removeLiquidity,
       getTokenAAmount: this.getTokenAAmount,
       getTokenBAmount: this.getTokenBAmount,
       getTokenBOutAmount: this.getTokenBOutAmount,
       getExchangeAddress: this.getExchangeAddress,
       getExchange: this.getExchange,
+      getLiquidityOwner: this.getLiquidityOwner,
       fromWei: this.fromWei,
       toWei: this.toWei,
       isOpen: false,
@@ -90,6 +93,7 @@ class App extends Component<IProps, IApp> {
       msg: false,
       msgTxt: '',
       outputAddress: '',
+      lpPairBalanceAccount: '',
       priceImpact: '',
       lpShareAccountviaInput: '',
       lpAccountShare: 0,
@@ -107,10 +111,12 @@ class App extends Component<IProps, IApp> {
     this._isMounted = true;
     await this.connectToWeb3();
     await this.loadBlockchainData();
+    await this.getLiquidityOwner(this.state.tokenData);
   }
 
-  async componentDidUpdate() {
-    if (this.state.tokenData && Object.keys(this.state.tokenData).length > 0) {
+  async componentDidUpdate(prevProps: any, prevState: any) {
+    // only update chart if the data has changed
+    if (prevState.account !== this.state.account) {
       await this.getLiquidityOwner(this.state.tokenData);
     }
   }
@@ -287,7 +293,40 @@ class App extends Component<IProps, IApp> {
     }
   };
 
-  removeLiquidity = async (ethAmount: string, tokenAmount: string) => {};
+  removeLiquidity = async (liquidityAmount: string) => {
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
+
+    try {
+      const tx1 = await this.state.Pair.approve(
+        this.state.router.address,
+        liquidityAmount,
+        {
+          from: this.state.account,
+          ...overrides,
+        }
+      );
+      await tx1.wait(1);
+
+      const tx2 = await this.state.router.removeLiquidityETH(
+        this.state.token1.address,
+        liquidityAmount,
+        0,
+        0,
+        this.state.account,
+        deadline,
+        {
+          from: this.state.account,
+          ...overrides,
+        }
+      );
+      await tx2.wait(1);
+      // //this.setState({ loading: false });
+      return true;
+    } catch (e: any) {
+      console.log(e);
+      console.log('Could not remove liquidity');
+    }
+  };
 
   getExchange = async (exchangeAddress: string) => {
     console.log(exchangeAddress);
@@ -399,6 +438,7 @@ class App extends Component<IProps, IApp> {
             this.state.tokenData.address,
             this.state.weth.address
           );
+
           setTimeout(() => {
             this.setState({ msg: null });
           }, 3000);
@@ -502,7 +542,7 @@ class App extends Component<IProps, IApp> {
       const Pair = new ethers.Contract(
         pairAddress,
         Exchange.abi,
-        this.state.provider
+        this.state.signer
       );
 
       if (Pair.address !== REACT_APP_ZERO_ADDRESS) {
@@ -549,11 +589,13 @@ class App extends Component<IProps, IApp> {
         console.log(`Price impact ${priceImpact}`);
 
         this.setState({
+          lpPairBalanceAccount,
           priceImpact,
           lpShareAccountviaInput,
           lpAccountShare,
           tokenAShare,
           tokenBShare,
+          Pair,
         });
       }
     } catch (e) {

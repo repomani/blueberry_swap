@@ -2,7 +2,7 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/ag/Documents/uniWithUI/src/contracts/CustomERC20.sol": {
-      "lastModificationDate": 1635714743197,
+      "lastModificationDate": 1636832418495,
       "contentHash": "5e65bd1d8cf3a53b230e4430c7c5de1c",
       "sourceName": "src/contracts/CustomERC20.sol",
       "solcConfig": {
@@ -36,7 +36,7 @@
       ]
     },
     "/Users/ag/Documents/uniWithUI/src/contracts/Exchange.sol": {
-      "lastModificationDate": 1635726791491,
+      "lastModificationDate": 1636832375681,
       "contentHash": "a717165fb4e62b97684ad609fbeb3a6e",
       "sourceName": "src/contracts/Exchange.sol",
       "solcConfig": {
@@ -317,8 +317,8 @@
       ]
     },
     "/Users/ag/Documents/uniWithUI/src/contracts/Router.sol": {
-      "lastModificationDate": 1636145251893,
-      "contentHash": "ab3a75203d090142880a0508d54e2fdc",
+      "lastModificationDate": 1636908521732,
+      "contentHash": "89d57544e1d02a49880c09eddd36ef34",
       "sourceName": "src/contracts/Router.sol",
       "solcConfig": {
         "version": "0.8.0",
@@ -359,7 +359,7 @@
       ]
     },
     "/Users/ag/Documents/uniWithUI/src/contracts/libraries/ExchangeLibrary.sol": {
-      "lastModificationDate": 1636146237978,
+      "lastModificationDate": 1636810731691,
       "contentHash": "36417e9f883c0395a70ae41258437cfc",
       "sourceName": "src/contracts/libraries/ExchangeLibrary.sol",
       "solcConfig": {
@@ -430,8 +430,8 @@
       ]
     },
     "/Users/ag/Documents/uniWithUI/src/contracts/interfaces/IRouter.sol": {
-      "lastModificationDate": 1636145984532,
-      "contentHash": "cc7802511999a060a36a8a60a26f8bd3",
+      "lastModificationDate": 1636908414542,
+      "contentHash": "bb9ac159e767b289c55f9a335908cf1a",
       "sourceName": "src/contracts/interfaces/IRouter.sol",
       "solcConfig": {
         "version": "0.8.0",

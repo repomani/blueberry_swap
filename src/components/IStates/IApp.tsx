@@ -16,6 +16,7 @@ export interface IApp {
   router: any;
   exchange: any;
   factory: any;
+  Pair: any;
   ethBalance: string;
   tokenBalance: string;
   loading: boolean;
@@ -23,11 +24,13 @@ export interface IApp {
   signer: any;
   exchangeAddress: string;
   addLiquidity(tokenAmount: string, ethAmount: string): void;
+  removeLiquidity(liquidityAmount: string): void;
   getTokenAAmount(tokenAmount: string): any;
   getTokenBAmount(tokenAmount: string): any;
   getTokenBOutAmount(ethAmount: string): any;
   getExchangeAddress(token1: any, token2: any): any;
   getExchange(exchange: any): any;
+  getLiquidityOwner(token1: ITokenData): void;
   fromWei(value: any): string;
   toWei(value: any): BigNumber;
   isOpen: boolean;
@@ -38,6 +41,7 @@ export interface IApp {
   msg: boolean;
   msgTxt: string;
   outputAddress: any;
+  lpPairBalanceAccount: string;
   priceImpact: string;
   lpShareAccountviaInput: string;
   lpAccountShare: number;

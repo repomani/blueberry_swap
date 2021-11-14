@@ -2,12 +2,16 @@ import { Component } from 'react';
 import styled from 'styled-components';
 import Context from '../Context';
 import { FaAngleDown } from 'react-icons/fa';
+import { BigNumber } from 'ethers';
+import { timeStamp } from 'console';
 
 export interface ProcessEnv {
   [key: string]: string | undefined;
 }
 
 require('dotenv').config();
+
+const { REACT_APP_WETH_ADDRESS }: ProcessEnv = process.env;
 
 const Container = styled.div`
   border: 0.5px solid skyblue;
@@ -24,7 +28,8 @@ const LiquidityItems = styled.div`
 const Row = styled.div`
   display: flex;
   flex-direction: row;
-  width: 75%;
+  width: 100%;
+  justify-content: center;
   margin: 10px 0 10px 0;
 `;
 
@@ -36,6 +41,12 @@ const Column = styled.div`
   justify-content: left;
 `;
 
+const ColumnContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 75%;
+`;
+
 const Title = styled.h4`
   padding: 10px;
 `;
@@ -45,6 +56,7 @@ interface IState {
   inputAmountInWei: any;
   outputAmount: any;
   outputAmountInWei: any;
+  loading: boolean;
 }
 
 const Image = styled.img`
@@ -57,12 +69,15 @@ export class AddLiquidity extends Component<any, IState> {
 
   constructor(props: any) {
     super(props);
+    this.removeLiquidity = this.removeLiquidity.bind(this);
+    this.toggleModal = this.toggleModal.bind(this);
     this.state = {
       calc: 0,
       inputAmount: '',
       inputAmountInWei: '',
       outputAmount: '',
       outputAmountInWei: '',
+      loading: false,
     };
   }
 
@@ -74,14 +89,36 @@ export class AddLiquidity extends Component<any, IState> {
       if (inputAmountInWei && outputAmountInWei) {
         console.log(inputAmountInWei, outputAmountInWei);
         // first param is token and second eth
-        this.context.addLiquidity(inputAmountInWei, outputAmountInWei);
+        await this.context.addLiquidity(inputAmountInWei, outputAmountInWei);
       }
+    }
+  };
+
+  removeLiquidity = async (lpPairBalanceAccount: string) => {
+    this.setState({
+      loading: true,
+    });
+
+    const exchangeAddress = await this.context.getExchangeAddress(
+      this.context.tokenData.address,
+      REACT_APP_WETH_ADDRESS
+    );
+
+    const exchange = await this.context.getExchange(exchangeAddress);
+
+    const res = await this.context.removeLiquidity(lpPairBalanceAccount);
+
+    if (res) {
+      await exchange.sync();
+      await this.context.getLiquidityOwner(this.context.tokenData);
+      this.setState({
+        loading: false,
+      });
     }
   };
 
   handleOnChangeTokenAAmount = async (e: any) => {
     console.log('changing');
-    console.log(e.target);
     let inputAmount: any;
     let inputAmountInWei: any;
     let outputAmount: any;
@@ -92,9 +129,11 @@ export class AddLiquidity extends Component<any, IState> {
       outputAmountInWei = this.context.toWei(outputAmount).toString();
 
       if (outputAmountInWei > 0 && outputAmountInWei !== '') {
+        console.log(outputAmountInWei);
         inputAmountInWei = await this.context.getTokenAAmount(
           outputAmountInWei
         );
+
         if (inputAmountInWei) {
           console.log(
             inputAmountInWei[0].toString(),
@@ -111,6 +150,7 @@ export class AddLiquidity extends Component<any, IState> {
             outputAmount,
             outputAmountInWei,
           });
+          this.context.getLiquidityOwner(this.context.tokenData);
         } else {
           this.setState({
             outputAmount,
@@ -140,6 +180,7 @@ export class AddLiquidity extends Component<any, IState> {
         outputAmountInWei = await this.context.getTokenBAmount(
           inputAmountInWei
         );
+
         if (outputAmountInWei) {
           console.log(
             outputAmountInWei[0].toString(),
@@ -156,6 +197,7 @@ export class AddLiquidity extends Component<any, IState> {
             outputAmount,
             outputAmountInWei,
           });
+          this.context.getLiquidityOwner(this.context.tokenData);
         } else {
           this.setState({
             inputAmount,
@@ -173,6 +215,10 @@ export class AddLiquidity extends Component<any, IState> {
 
   toggleModal = () => {
     this.context.toggleTokenListModal();
+  };
+
+  checkLoadingStatus = () => {
+    return <p>{this.state.loading ? 'Loading..' : ''}</p>;
   };
 
   resetForms = () => {
@@ -207,6 +253,7 @@ export class AddLiquidity extends Component<any, IState> {
               <input
                 id="tokenA"
                 type="number"
+                min="0"
                 step="0.000000000000000001"
                 autoComplete="off"
                 placeholder="0.0"
@@ -243,6 +290,7 @@ export class AddLiquidity extends Component<any, IState> {
               <input
                 id="tokenB"
                 type="number"
+                min="0"
                 step="0.000000000000000001"
                 autoComplete="off"
                 placeholder="0.0"
@@ -289,30 +337,48 @@ export class AddLiquidity extends Component<any, IState> {
         </div>
       </div>
 
-      {this.context.tokenData?.symbol && this.state.inputAmount ? (
+      {this.state.calc > 0 ? (
         <Container>
           <Title>Provided Liquidity</Title>
           <LiquidityItems>
-            <Row>
-              <Column>Pool Share:</Column>
-              <Column>
-                {(Number.parseFloat(this.context.lpAccountShare) * 100).toFixed(
-                  2
-                )}
-                %
-              </Column>
-            </Row>
-            <Row>
-              <Column> {this.context.tokenData.symbol}</Column>
-              <Column>{this.context.tokenAShare}</Column>
-            </Row>
-            <Row>
-              <Column> BNB</Column>
-              <Column>{this.context.tokenBShare}</Column>
-            </Row>
-            <button type="submit" className="btn btn-success btn-block btn-lg">
-              RemoveLiquidity
-            </button>
+            <ColumnContainer>
+              <Row>
+                <Column>Pool Share:</Column>
+                <Column>
+                  {(
+                    Number.parseFloat(this.context.lpAccountShare) * 100
+                  ).toFixed(2)}
+                  %
+                </Column>
+              </Row>
+              <Row>
+                <Column>Owned LP tokens</Column>
+                <Column>{this.context.lpPairBalanceAccount}</Column>
+              </Row>
+              <Row>
+                <Column> {this.context.tokenData.symbol}</Column>
+                <Column>{this.context.tokenAShare}</Column>
+              </Row>
+              <Row>
+                <Column> BNB</Column>
+                <Column>{this.context.tokenBShare}</Column>
+              </Row>
+            </ColumnContainer>
+            {this.context.lpAccountShare > 0 ? (
+              <button
+                onClick={() =>
+                  this.removeLiquidity(this.context.lpPairBalanceAccount)
+                }
+                className="btn btn-success btn-block btn-lg"
+              >
+                <Row>
+                  {this.state.loading ? <Column> Loading..</Column> : ''}
+                  <Column>RemoveLiquidity</Column>
+                </Row>
+              </button>
+            ) : (
+              ''
+            )}
           </LiquidityItems>
         </Container>
       ) : null}
