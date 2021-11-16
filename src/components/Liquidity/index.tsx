@@ -2,8 +2,7 @@ import { Component } from 'react';
 import styled from 'styled-components';
 import Context from '../Context';
 import { FaAngleDown } from 'react-icons/fa';
-import { BigNumber } from 'ethers';
-import { timeStamp } from 'console';
+import data from '../../data.json';
 
 export interface ProcessEnv {
   [key: string]: string | undefined;
@@ -266,14 +265,8 @@ export class AddLiquidity extends Component<any, IState> {
               />
               <div className="input-group-append">
                 <div className="input-group-text">
-                  <img
-                    src={
-                      'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'
-                    }
-                    height="32"
-                    alt=""
-                  />
-                  &nbsp;&nbsp;&nbsp; BNB
+                  <Image src={data[0].logoURI}></Image>
+                  &nbsp; {data[0].symbol}
                 </div>
               </div>
             </div>

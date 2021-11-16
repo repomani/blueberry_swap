@@ -36,11 +36,15 @@ export interface IApp {
   isOpen: boolean;
   toggleTokenListModal(): any;
   setMsg(value: string): any;
+  tokensData: ITokenData[];
   tokenData: ITokenData;
   tx: any;
   msg: boolean;
   msgTxt: string;
   outputAddress: any;
+  liquidity: any;
+  tokenAExpected: any;
+  tokenBExpected: any;
   lpPairBalanceAccount: string;
   priceImpact: string;
   lpShareAccountviaInput: string;

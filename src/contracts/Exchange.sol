@@ -145,7 +145,9 @@ contract Exchange is CustomERC20 {
         _safeTransfer(_token1, to, amount1);
         balance0 = IERC20(_token0).balanceOf(address(this));
         balance1 = IERC20(_token1).balanceOf(address(this));
-
+        console.log('BBBBBBB');
+        console.log(balance0, balance1, _reserve0, _reserve1);
+        console.log('BBBBBBB');
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = uint(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Burn(msg.sender, amount0, amount1, to);
@@ -166,9 +168,7 @@ contract Exchange is CustomERC20 {
         if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
         if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
         if (data.length > 0) {
-             console.log('.....swap......');
              IExchangeCallee(to).exchangeCall(msg.sender, amount0Out, amount1Out, data);
-             console.log('.....swap......');
         }
         balance0 = IERC20(_token0).balanceOf(address(this));
         balance1 = IERC20(_token1).balanceOf(address(this));

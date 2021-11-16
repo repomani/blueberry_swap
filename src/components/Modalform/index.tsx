@@ -5,8 +5,6 @@ import data from '../../data.json';
 
 require('dotenv').config();
 
-// const { REACT_APP_BSC_Explorer, REACT_APP_BSC_API } = process.env;
-
 const Flex = styled.div`
   display: flex;
   justify-content: center;
@@ -86,9 +84,6 @@ const Image = styled.img`
   height: 32px;
 `;
 
-// const url =
-//   'https://github.com/Uniswap/default-token-list/blob/master/src/tokens/rinkeby.json';
-
 interface IToken {
   name: string;
   address?: string;
@@ -116,8 +111,6 @@ export const Modal = ({ isOpen, toggleTokenListModal, getTokenData }) => {
     e.preventDefault();
     let inputVal = e.target.value.toString().toLowerCase();
     if (inputVal.startsWith('0x')) {
-      // const res = getTokenInfo('0x');
-      // setTokens([res]);
     } else {
       const res = searchVals.filter((item: any) => {
         return item.name.toLowerCase().includes(inputVal);

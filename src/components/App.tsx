@@ -15,6 +15,7 @@ import { IApp, ITokenData } from '../components/IStates/IApp';
 import styled from 'styled-components';
 import { Tabs } from './Tabs';
 import AddLiquidity from './Liquidity';
+import data from '../data.json';
 
 export interface ProcessEnv {
   [key: string]: string | undefined;
@@ -87,12 +88,16 @@ class App extends Component<IProps, IApp> {
       toWei: this.toWei,
       isOpen: false,
       toggleTokenListModal: this.toggleTokenListModal,
+      tokensData: [] as ITokenData[],
       tokenData: {} as ITokenData,
       setMsg: this.setMsg,
       tx: '',
       msg: false,
       msgTxt: '',
       outputAddress: '',
+      liquidity: BigNumber,
+      tokenAExpected: BigNumber,
+      tokenBExpected: BigNumber,
       lpPairBalanceAccount: '',
       priceImpact: '',
       lpShareAccountviaInput: '',
@@ -100,6 +105,9 @@ class App extends Component<IProps, IApp> {
       tokenAShare: 0,
       tokenBShare: 0,
     };
+    this.setState({
+      tokensData: data,
+    });
   }
 
   clearStates = () => {
@@ -293,7 +301,7 @@ class App extends Component<IProps, IApp> {
     }
   };
 
-  removeLiquidity = async (liquidityAmount: string) => {
+  removeLiquidity = async (liquidityAmount: any) => {
     const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
 
     try {
@@ -310,8 +318,8 @@ class App extends Component<IProps, IApp> {
       const tx2 = await this.state.router.removeLiquidityETH(
         this.state.token1.address,
         liquidityAmount,
-        0,
-        0,
+        this.state.tokenAExpected,
+        this.state.tokenBExpected,
         this.state.account,
         deadline,
         {
@@ -475,6 +483,7 @@ class App extends Component<IProps, IApp> {
             this.state.weth.address,
             this.state.tokenData.address
           );
+
           setTimeout(() => {
             this.setState({ msg: null });
           }, 3000);
@@ -534,69 +543,84 @@ class App extends Component<IProps, IApp> {
 
   getLiquidityOwner = async (token1: ITokenData) => {
     try {
-      const pairAddress = await this.state.factory.getPair(
-        token1.address,
-        REACT_APP_WETH_ADDRESS
-      );
-
-      const Pair = new ethers.Contract(
-        pairAddress,
-        Exchange.abi,
-        this.state.signer
-      );
-
-      if (Pair.address !== REACT_APP_ZERO_ADDRESS) {
-        //Pair balance account
-        const pairBalanceAccount = await Pair.balanceOf(this.state.account);
-
-        //WETH
-        const token_B_LP_Balance = await this.state.weth.balanceOf(
-          Pair.address
+      if (token1?.address) {
+        const pairAddress = await this.state.factory.getPair(
+          token1.address,
+          REACT_APP_WETH_ADDRESS
         );
 
-        //Token
-        const token_A_LP_Balance = await this.state.token1.balanceOf(
-          Pair.address
+        const Pair = new ethers.Contract(
+          pairAddress,
+          Exchange.abi,
+          this.state.signer
         );
 
-        const lpPairBalanceAccount = pairBalanceAccount.toString();
-        //Token balance
-        const tokenA = token_A_LP_Balance.toString();
-        //WETH balance
-        const tokenB = token_B_LP_Balance.toString();
-        const totalSupply = await Pair.totalSupply();
+        if (Pair.address !== REACT_APP_ZERO_ADDRESS) {
+          //WETH
+          const token_B_LP_Balance = await this.state.weth.balanceOf(
+            Pair.address
+          );
 
-        const priceImp =
-          (this.child.current.state.inputAmountInWei * 100) / tokenB;
-        const priceImpact = priceImp.toString();
+          //Token
+          const token_A_LP_Balance = await this.state.token1.balanceOf(
+            Pair.address
+          );
 
-        const lpAccountShare = pairBalanceAccount / totalSupply;
+          //Pair balance account
+          const liquidity = await Pair.balanceOf(this.state.account);
 
-        const tokenAShare =
-          Number.parseFloat(this.state.fromWei(tokenA)) * lpAccountShare;
+          const lpPairBalanceAccount = liquidity.toString();
+          //Token balance
+          const tokenA = token_A_LP_Balance.toString();
+          //WETH balance
+          const tokenB = token_B_LP_Balance.toString();
+          const totalSupply = await Pair.totalSupply();
 
-        const tokenBShare =
-          Number.parseFloat(this.state.fromWei(tokenB)) * lpAccountShare;
+          const priceImp =
+            (this.child.current.state.inputAmountInWei * 100) / tokenB;
+          const priceImpact = priceImp.toString();
 
-        const lpShareAccountviaInp =
-          (this.child.current.state.inputAmountInWei * 100) / totalSupply;
-        const lpShareAccountviaInput = lpShareAccountviaInp.toString();
+          const lpAccountShare = liquidity / totalSupply;
 
-        console.log(`LP Account: ${this.state.fromWei(lpPairBalanceAccount)}`);
-        console.log(`LP Token Balance ${this.state.fromWei(tokenA)}`);
-        console.log(`LP WETH Balance ${this.state.fromWei(tokenB)}`);
-        console.log(`LP Total Supply: ${this.state.fromWei(totalSupply)}`);
-        console.log(`Price impact ${priceImpact}`);
+          const tokenAShare =
+            Number.parseFloat(this.state.fromWei(tokenA)) * lpAccountShare;
 
-        this.setState({
-          lpPairBalanceAccount,
-          priceImpact,
-          lpShareAccountviaInput,
-          lpAccountShare,
-          tokenAShare,
-          tokenBShare,
-          Pair,
-        });
+          const tokenBShare =
+            Number.parseFloat(this.state.fromWei(tokenB)) * lpAccountShare;
+
+          const lpShareAccountviaInp =
+            (this.child.current.state.inputAmountInWei * 100) / totalSupply;
+          const lpShareAccountviaInput = lpShareAccountviaInp.toString();
+
+          const tokenAExpected = BigNumber.from(token_A_LP_Balance)
+            .mul(BigNumber.from(liquidity))
+            .div(BigNumber.from(totalSupply));
+
+          const tokenBExpected = BigNumber.from(token_B_LP_Balance)
+            .mul(BigNumber.from(liquidity))
+            .div(BigNumber.from(totalSupply));
+
+          console.log(
+            `LP Account: ${this.state.fromWei(lpPairBalanceAccount)}`
+          );
+          console.log(`LP Token Balance ${this.state.fromWei(tokenA)}`);
+          console.log(`LP WETH Balance ${this.state.fromWei(tokenB)}`);
+          console.log(`LP Total Supply: ${this.state.fromWei(totalSupply)}`);
+          console.log(`Price impact ${priceImpact}`);
+
+          this.setState({
+            liquidity,
+            tokenAExpected,
+            tokenBExpected,
+            lpPairBalanceAccount,
+            priceImpact,
+            lpShareAccountviaInput,
+            lpAccountShare,
+            tokenAShare,
+            tokenBShare,
+            Pair,
+          });
+        }
       }
     } catch (e) {
       console.log(`Error getting contract ${e}`);
